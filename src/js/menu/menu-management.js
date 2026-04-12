@@ -1,6 +1,6 @@
-import { supabase } from '../supabaseClient.js'
-import { requireApprovedVendor } from '../routeGuards.js'
-import { getVendorProfile } from '../authHelpers.js'
+import { supabase } from '../../../shared-auth-foundation/src/js/supabaseClient.js'
+import { requireApprovedVendor } from '../../../shared-auth-foundation/src/js/routeGuards.js'
+import { getVendorProfile } from '../../../shared-auth-foundation/src/js/authHelpers.js'
 
 const message = document.getElementById('message')
 const logoutBtn = document.getElementById('logout-btn')
@@ -148,11 +148,10 @@ function renderMenuItems(items) {
                 ${item.is_available ? 'Available' : 'Sold Out'}
             </td>
             <td>
-                ${
-                    item.photo_url
-                        ? `<a href="${escapeAttribute(item.photo_url)}" target="_blank" rel="noopener noreferrer">View</a>`
-                        : 'N/A'
-                }
+                ${item.photo_url
+                ? `<a href="${escapeAttribute(item.photo_url)}" target="_blank" rel="noopener noreferrer">View</a>`
+                : 'N/A'
+            }
             </td>
             <td>
                 <button data-action="edit" data-id="${item.id}">Edit</button>

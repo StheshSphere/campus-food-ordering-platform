@@ -1,5 +1,5 @@
-import { supabase } from '../supabaseClient.js'
-import { requireAdmin } from '../routeGuards.js'
+import { supabase } from '../../../shared-auth-foundation/src/js/supabaseClient.js'
+import { requireAdmin } from '../../../shared-auth-foundation/src/js/routeGuards.js'
 
 const message = document.getElementById('message')
 const vendorTableBody = document.getElementById('vendor-table-body')
