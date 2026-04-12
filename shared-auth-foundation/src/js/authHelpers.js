@@ -10,29 +10,15 @@ export async function getCurrentSessionUser() {
     return data.session.user
 }
 
-export async function getUserRole(userId) {
+export async function getUserById(userId) {
     const { data, error } = await supabase
         .from('users')
-        .select('role')
+        .select('id, email, role, created_at')
         .eq('id', userId)
-        .single()
+        .maybeSingle()
 
     if (error) {
-        throw new Error('Error fetching user role')
-    }
-
-    return data.role
-}
-
-export async function getVendorProfile(userId) {
-    const { data, error } = await supabase
-        .from('vendors')
-        .select('id, status, business_name')
-        .eq('user_id', userId)
-        .single()
-
-    if (error) {
-        throw new Error('Error fetching vendor profile')
+        throw new Error(error.message)
     }
 
     return data
@@ -54,6 +40,20 @@ export async function createUserProfile({ id, email, role }) {
     }
 }
 
+export async function getVendorProfileByUserId(userId) {
+    const { data, error } = await supabase
+        .from('vendors')
+        .select('id, user_id, business_name, status, created_at, updated_at')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+    if (error) {
+        throw new Error(error.message)
+    }
+
+    return data
+}
+
 export async function createVendorProfile({ userId, businessName }) {
     const { error } = await supabase
         .from('vendors')
@@ -68,4 +68,15 @@ export async function createVendorProfile({ userId, businessName }) {
     if (error) {
         throw new Error(error.message)
     }
+}
+
+export async function requireLoggedInUser(redirectTo) {
+    const user = await getCurrentSessionUser()
+
+    if (!user) {
+        window.location.href = redirectTo
+        return null
+    }
+
+    return user
 }
