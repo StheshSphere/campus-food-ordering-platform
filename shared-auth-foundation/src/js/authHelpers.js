@@ -18,6 +18,7 @@ export async function getUserById(userId) {
         .maybeSingle()
 
     if (error) {
+        console.error('getUserById error:', error)
         throw new Error(error.message)
     }
 
@@ -36,6 +37,7 @@ export async function createUserProfile({ id, email, role }) {
         ])
 
     if (error) {
+        console.error('createUserProfile error:', error)
         throw new Error(error.message)
     }
 }
@@ -48,6 +50,7 @@ export async function getVendorProfileByUserId(userId) {
         .maybeSingle()
 
     if (error) {
+        console.error('getVendorProfileByUserId error:', error)
         throw new Error(error.message)
     }
 
@@ -66,6 +69,7 @@ export async function createVendorProfile({ userId, businessName }) {
         ])
 
     if (error) {
+        console.error('createVendorProfile error:', error)
         throw new Error(error.message)
     }
 }
