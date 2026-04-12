@@ -2,37 +2,25 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Login</title>
-    <link rel="stylesheet" href="../src/css/student-login.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Login</title>
+  <link rel="stylesheet" href="../src/css/student-login.css">
 </head>
 
 <body>
-    <h2>Student Login</h2>
+  <main class="auth-container">
+    <section class="auth-card">
+      <h1>Student Login</h1>
+      <p class="subtitle">Sign in with Google to continue to the platform.</p>
 
-    <form id="login-form">
-        <input type="email" id="email" placeholder="Enter email" required>
-        <br><br>
+      <button id="google-login-btn" class="google-btn">Continue with Google</button>
 
-        <input type="password" id="password" placeholder="Enter password" required>
-        <br><br>
+      <p id="message" class="message"></p>
+    </section>
+  </main>
 
-        <button type="submit">Login</button>
-    </form>
-
-    <p id="message"></p>
-
-    <p>
-        <a href="forgot-password.html">Forgot Password?</a>
-    </p>
-
-    <p>
-        Don't have an account?
-        <a href="student-signup.html">Register here</a>
-    </p>
-
-    <script type="module" src="../src/js/auth/student-login.js"></script>
+  <script type="module" src="../src/js/auth/student-login.js"></script>
 </body>
 
 </html>
