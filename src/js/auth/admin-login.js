@@ -1,5 +1,5 @@
-import { supabase } from '../supabaseClient.js'
-import { getUserRole } from '../authHelpers.js'
+import { supabase } from '../../../shared-auth-foundation/src/js/supabaseClient.js'
+import { getUserRole } from '../../../shared-auth-foundation/src/js/authHelpers.js'
 
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('login-form')
