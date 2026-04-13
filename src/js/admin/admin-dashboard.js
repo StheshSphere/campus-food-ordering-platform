@@ -1,5 +1,5 @@
-import { supabase } from '../supabaseClient.js'
-import { getCurrentSessionUser, getUserById } from '../authHelpers.js'
+import { supabase } from '../../../shared-auth-foundation/src/js/supabaseClient.js'
+import { getCurrentSessionUser, getUserById } from '../../../shared-auth-foundation/src/js/authHelpers.js'
 
 const message = document.getElementById('message')
 const vendorTableBody = document.getElementById('vendor-table-body')

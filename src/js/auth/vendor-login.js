@@ -1,4 +1,4 @@
-import { supabase } from '../supabaseClient.js'
+import { supabase } from '../../../shared-auth-foundation/src/js/supabaseClient.js'
 
 const button = document.getElementById('google-login-btn')
 const message = document.getElementById('message')

@@ -1,4 +1,4 @@
-import { supabase } from '../supabaseClient.js'
+import { supabase } from '../../../shared-auth-foundation/src/js/supabaseClient.js'
 
 const logoutBtn = document.getElementById('logout-btn')
 const message = document.getElementById('message')

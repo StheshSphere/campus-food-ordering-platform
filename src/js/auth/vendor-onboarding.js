@@ -3,7 +3,7 @@ import {
     getUserById,
     getVendorProfileByUserId,
     createVendorProfile
-} from '../authHelpers.js'
+} from '../../../shared-auth-foundation/src/js/authHelpers.js'
 
 const form = document.getElementById('vendor-form')
 const message = document.getElementById('message')

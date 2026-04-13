@@ -1,18 +1,37 @@
+import { supabase } from '../../../shared-auth-foundation/src/js/supabaseClient.js'
 import {
-    getCurrentSessionUser,
     getUserById,
     createUserProfile,
     getVendorProfileByUserId
-} from '../authHelpers.js'
+} from '../../../shared-auth-foundation/src/js/authHelpers.js'
 
 const message = document.getElementById('message')
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const authUser = await getCurrentSessionUser()
+        message.textContent = 'Completing sign-in...'
+
+        // Give Supabase a moment to restore/exchange the session after redirect
+        let session = null
+        let authUser = null
+
+        for (let i = 0; i < 10; i++) {
+            const { data, error } = await supabase.auth.getSession()
+
+            if (error) {
+                throw new Error(error.message)
+            }
+
+            session = data.session
+            authUser = session?.user || null
+
+            if (authUser) break
+
+            await new Promise(resolve => setTimeout(resolve, 300))
+        }
 
         if (!authUser) {
-            message.textContent = 'No active session found.'
+            message.textContent = 'No active session found after sign-in.'
             return
         }
 
@@ -20,13 +39,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         const requestedRole = params.get('role')
 
         if (!requestedRole || !['student', 'vendor', 'admin'].includes(requestedRole)) {
-            message.textContent = 'Invalid role.'
+            message.textContent = 'Invalid or missing role in callback URL.'
             return
         }
 
         let userRow = await getUserById(authUser.id)
 
         if (!userRow) {
+            message.textContent = 'Creating user profile...'
+
             await createUserProfile({
                 id: authUser.id,
                 email: authUser.email,
@@ -36,7 +57,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             userRow = await getUserById(authUser.id)
         }
 
-        if (requestedRole !== userRow.role) {
+        if (!userRow) {
+            message.textContent = 'User profile could not be created.'
+            return
+        }
+
+        if (userRow.role !== requestedRole) {
             message.textContent = `This account is registered as ${userRow.role}, not ${requestedRole}.`
             return
         }
@@ -80,6 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         message.textContent = 'Unknown user role.'
     } catch (error) {
+        console.error('Auth callback error:', error)
         message.textContent = error.message || 'Authentication failed.'
     }
 })
