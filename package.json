@@ -1,0 +1,14 @@
+{
+  "name": "campus-food-ordering-platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
+    "test:coverage": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --coverage",
+    "build": "echo \"No build step configured yet\""
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
