@@ -3,7 +3,7 @@ import {
     requireLoggedInUser,
     getUserById,
     getVendorProfileByUserId
-} from '../authHelpers.js'
+} from '../../../shared-auth-foundation/src/js/authHelpers.js'
 
 const menuForm = document.getElementById('menu-item-form')
 const menuItemsContainer = document.getElementById('menu-items-container')
@@ -17,8 +17,10 @@ const editingItemIdInput = document.getElementById('editing-item-id')
 const itemNameInput = document.getElementById('item-name')
 const itemDescriptionInput = document.getElementById('item-description')
 const itemPriceInput = document.getElementById('item-price')
-const itemImageUrlInput = document.getElementById('item-image-url')
+const itemImageInput = document.getElementById('item-image')
 const itemAvailabilityInput = document.getElementById('item-availability')
+
+const STORAGE_BUCKET = 'menu-images'
 
 let authUser = null
 let vendorProfile = null
@@ -67,6 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         setupFormSubmit()
         await loadMenuItems()
     } catch (error) {
+        console.error(error)
         message.textContent = error.message || 'Failed to load menu management page.'
     }
 })
@@ -92,8 +95,8 @@ function setupFormSubmit() {
         const itemName = itemNameInput.value.trim()
         const itemDescription = itemDescriptionInput.value.trim()
         const itemPrice = parseFloat(itemPriceInput.value)
-        const itemImageUrl = itemImageUrlInput.value.trim()
         const itemAvailability = itemAvailabilityInput.value === 'true'
+        const selectedFile = itemImageInput.files[0] || null
 
         if (!itemName) {
             message.textContent = 'Please enter the item name.'
@@ -110,17 +113,42 @@ function setupFormSubmit() {
             return
         }
 
-        const payload = {
-            vendor_id: vendorProfile.id,
-            name: itemName,
-            description: itemDescription,
-            price: itemPrice,
-            image_url: itemImageUrl || null,
-            is_available: itemAvailability,
-            updated_at: new Date().toISOString()
-        }
-
         try {
+            message.textContent = editingItemId ? 'Updating menu item...' : 'Adding menu item...'
+
+            let existingImageUrl = null
+
+            if (editingItemId) {
+                const { data: existingItem, error: existingItemError } = await supabase
+                    .from('menu_items')
+                    .select('image_url')
+                    .eq('id', editingItemId)
+                    .eq('vendor_id', vendorProfile.id)
+                    .single()
+
+                if (existingItemError) {
+                    throw new Error(existingItemError.message)
+                }
+
+                existingImageUrl = existingItem.image_url
+            }
+
+            let imageUrl = existingImageUrl
+
+            if (selectedFile) {
+                imageUrl = await uploadMenuImage(selectedFile)
+            }
+
+            const payload = {
+                vendor_id: vendorProfile.id,
+                name: itemName,
+                description: itemDescription,
+                price: itemPrice,
+                image_url: imageUrl,
+                is_available: itemAvailability,
+                updated_at: new Date().toISOString()
+            }
+
             if (editingItemId) {
                 const { error } = await supabase
                     .from('menu_items')
@@ -136,11 +164,7 @@ function setupFormSubmit() {
             } else {
                 const { error } = await supabase
                     .from('menu_items')
-                    .insert([
-                        {
-                            ...payload
-                        }
-                    ])
+                    .insert([payload])
 
                 if (error) {
                     throw new Error(error.message)
@@ -152,9 +176,41 @@ function setupFormSubmit() {
             resetForm()
             await loadMenuItems()
         } catch (error) {
+            console.error(error)
             message.textContent = error.message || 'Failed to save menu item.'
         }
     })
+}
+
+async function uploadMenuImage(file) {
+    if (!file.type.startsWith('image/')) {
+        throw new Error('Please upload a valid image file.')
+    }
+
+    const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const safeFileName = `${crypto.randomUUID()}.${fileExtension}`
+    const filePath = `${vendorProfile.id}/${safeFileName}`
+
+    const { error: uploadError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(filePath, file, {
+            upsert: false,
+            contentType: file.type
+        })
+
+    if (uploadError) {
+        throw new Error(`Image upload failed: ${uploadError.message}`)
+    }
+
+    const { data } = supabase.storage
+        .from(STORAGE_BUCKET)
+        .getPublicUrl(filePath)
+
+    if (!data?.publicUrl) {
+        throw new Error('Failed to create public image URL.')
+    }
+
+    return data.publicUrl
 }
 
 async function loadMenuItems() {
@@ -190,7 +246,12 @@ function displayMenuItems(items) {
             <p><strong>Description:</strong> ${escapeHtml(item.description || 'No description available.')}</p>
             <p><strong>Price:</strong> R${Number(item.price).toFixed(2)}</p>
             <p><strong>Availability:</strong> <span class="${item.is_available ? 'status-available' : 'status-sold-out'}">${item.is_available ? 'Available' : 'Sold Out'}</span></p>
-            <p><strong>Image:</strong> ${item.image_url ? `<a href="${escapeAttribute(item.image_url)}" target="_blank" rel="noopener noreferrer">View image</a>` : 'No image'}</p>
+            <div class="image-preview-wrapper">
+                ${item.image_url
+                ? `<img class="menu-item-image" src="${escapeAttribute(item.image_url)}" alt="${escapeAttribute(item.name)}">`
+                : `<div class="no-image">No image uploaded</div>`
+            }
+            </div>
             <div class="card-buttons">
                 <button class="edit-button" data-id="${item.id}">Edit</button>
                 <button class="toggle-button" data-id="${item.id}" data-available="${item.is_available}">
@@ -219,12 +280,13 @@ function startEdit(item) {
     itemNameInput.value = item.name
     itemDescriptionInput.value = item.description
     itemPriceInput.value = item.price
-    itemImageUrlInput.value = item.image_url || ''
     itemAvailabilityInput.value = String(item.is_available)
+    itemImageInput.value = ''
 
     formTitle.textContent = 'Edit Menu Item'
     submitBtn.textContent = 'Update Item'
     cancelEditBtn.hidden = false
+
     window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
@@ -246,6 +308,7 @@ async function toggleAvailability(itemId, currentAvailability) {
         message.textContent = 'Item availability updated successfully.'
         await loadMenuItems()
     } catch (error) {
+        console.error(error)
         message.textContent = error.message || 'Failed to update item availability.'
     }
 }

@@ -86,6 +86,11 @@ textarea {
     resize: vertical;
 }
 
+.helper-text {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
 .button-row,
 .card-buttons {
     display: flex;
@@ -144,6 +149,25 @@ button:hover {
 .status-sold-out {
     color: #b91c1c;
     font-weight: 700;
+}
+
+.image-preview-wrapper {
+    margin: 14px 0;
+}
+
+.menu-item-image {
+    width: 100%;
+    max-width: 280px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid #d1d5db;
+    display: block;
+}
+
+.no-image {
+    color: #6b7280;
+    font-style: italic;
 }
 
 a {
